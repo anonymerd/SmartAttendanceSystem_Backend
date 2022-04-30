@@ -1,5 +1,6 @@
 from django.contrib import admin
-from captureAttendance.models import Image, Employee
+from captureAttendance.models import Company, User, Log
 
-admin.site.register(Image)
-admin.site.register(Employee)
+admin.site.register(Company)
+admin.site.register(User)
+admin.site.register(Log)
