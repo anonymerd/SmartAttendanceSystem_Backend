@@ -5,8 +5,8 @@ from uuid import uuid4
 import os
 
 
-def path_and_rename(instance, filename):
-    upload_to = 'images'
+def path_and_rename(instance, filename, upload_to):
+    # upload_to = 'images'
     ext = filename.split('.')[-1]
     # get filename
     print(instance)
@@ -19,6 +19,14 @@ def path_and_rename(instance, filename):
     return os.path.join(upload_to, filename)
 
 
+def path_and_rename_company(instance, filename):
+    return path_and_rename(instance, filename, 'images/company')
+
+
+def path_and_rename_user(instance, filename):
+    return path_and_rename(instance, filename, 'images/user')
+
+
 class Image(models.Model):
     image = models.FileField(upload_to='uploads/', null=True)
     name = models.TextField(default="DEFAULT")
@@ -26,11 +34,12 @@ class Image(models.Model):
 
 
 class Company(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+
+    id = models.AutoField(auto_created=True, primary_key=True)
     companyId = models.TextField(unique=True)
     name = models.TextField()
     email = models.EmailField(unique=True)
-    image = models.ImageField(upload_to=path_and_rename, null=True)
+    image = models.ImageField(upload_to=path_and_rename_company, null=True)
     city = models.TextField()
     country = models.TextField()
     isApproved = models.BooleanField(default=False)
@@ -41,17 +50,17 @@ class User(models.Model):
     USER_TYPE_CHOICES = [
         ('EMP', 'Employee'),
         ('AD', 'Admin'),
-        ('SA', 'SuperAdmin')
+        ('SA', 'SuperAdmin'),
+        ('NONE', 'None')
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.AutoField(auto_created=True, primary_key=True)
     userId = models.TextField(unique=True)
     name = models.TextField(default="DEFAULT_Name")
     email = models.EmailField(unique=True)
-    password = models.TextField()
-    companyId = models.TextField()
+    password = models.TextField(null=True)
     # image = models.ImageField(upload_to='images', null=True)
-    image = models.ImageField(upload_to=path_and_rename, null=True)
+    image = models.ImageField(upload_to=path_and_rename_user, null=True)
     userType = models.TextField(choices=USER_TYPE_CHOICES)
     designation = models.TextField()
     companyId = models.ForeignKey(
@@ -68,7 +77,7 @@ class Log(models.Model):
         ('CO', 'CheckOut')
     ]
 
-    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    id = models.AutoField(auto_created=True, primary_key=True)
     userId = models.ForeignKey(
         'User', to_field='userId', on_delete=models.CASCADE)
     companyId = models.ForeignKey(

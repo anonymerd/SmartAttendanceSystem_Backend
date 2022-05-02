@@ -21,7 +21,8 @@ class CompanySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Company
-        fields = ['companyId', 'name', 'email', 'image', 'city', 'country']
+        fields = ['companyId', 'name', 'email',
+                  'image', 'city', 'country']
 
     def create(self, validated_data):
         company = Company(
@@ -30,7 +31,7 @@ class CompanySerializer(serializers.ModelSerializer):
             email=validated_data.pop('email'),
             image=validated_data.pop('image'),
             city=validated_data.pop('city'),
-            country=validated_data.pop('country')
+            country=validated_data.pop('country'),
         )
         company.save()
         return company
@@ -66,7 +67,7 @@ class LogSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         log = Log(
-            empId=validated_data.pop('empId'),
+            userId=validated_data.pop('userId'),
             companyId=validated_data.pop('companyId'),
             type=validated_data.pop('type'),
             datetime=validated_data.pop('datetime'),
