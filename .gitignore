@@ -2,6 +2,7 @@
 *.pot
 *.pyc
 captureAttendance/__pycache__
+captureAttendance/migrations
 smartAttendanceSystemBackend/__pycache__
 db.sqlite3
 media
