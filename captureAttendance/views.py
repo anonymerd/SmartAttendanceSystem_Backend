@@ -14,6 +14,8 @@ from .emails import sendMail
 import os
 import re
 import jwt
+import string
+import random
 
 
 from deepface import DeepFace
@@ -218,7 +220,7 @@ class CompanyAPIView(APIView):
         # )
 
         company = {
-            "companyId": request.data['companyId'],
+            "companyId": ''.join(random.choices(string.ascii_uppercase + string.digits, k = 7)),
             "name": request.data['name'],
             "email": request.data['email'],
             "image": request.data['image'],
@@ -264,6 +266,7 @@ class CompanyAPIView(APIView):
 
         else:
             print('Company Not valid')
+            return Response(compSerializer.errors)
         # except Exception as err:
         #     print(err)
         #     return Response({'status': False, 'message': err}, status=400)
