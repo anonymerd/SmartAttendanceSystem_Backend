@@ -1,3 +1,9 @@
+import numpy as np
+import pandas as pd
+from deepface import DeepFace
+import jwt
+import re
+import os
 from yaml import serialize
 from captureAttendance.models import Company, User, Log
 from rest_framework import viewsets, permissions
@@ -7,18 +13,6 @@ from rest_framework.views import APIView
 from rest_framework.renderers import BaseRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .emails import sendMail
-
-# from .faceRecognition import test
-
-
-import os
-import re
-import jwt
-
-
-from deepface import DeepFace
-import pandas as pd
-import numpy as np
 
 
 class ImageAPIView(APIView):

@@ -4,39 +4,21 @@ from django.conf import settings
 from scipy.misc import face
 
 
-# def test():
-#     # print(os.listdir(os.path.join(settings.MEDIA_ROOT, 'images')))
-#     print(settings.MEDIA_ROOT)
+def recognize():
+    # print(os.listdir(os.path.join(settings.MEDIA_ROOT, 'images/user')))
 
+    for image in os.listdir('images/user'):
+        print(image)
 
-# for image in os.listdir('images/'):
-#     print(image)
-#     curr = face_recognition.load_image_file('images/' + image)
-#     encoding = face_recognition.face_encodings(curr)[0]
+        known_image = face_recognition.load_image_file('images/user/' + image)
+        unknown_image = face_recognition.load_image_file(
+            'uploads/rohit.jpg')
 
-#     new = face_recognition.load_image_file('new.png')
-#     newEnc = face_recognition.face_encodings(new)[0]
+        known_encoding = face_recognition.face_encodings(known_image)
+        unknown_encoding = face_recognition.face_encodings(unknown_image)
 
-#     results = face_recognition.compare_faces([encoding], newEnc)
+        if(len(known_encoding) > 0 and len(unknown_encoding) > 0):
 
-#     if results[0] == True:
-#         print(image)
-
-
-# picture_of_me = face_recognition.load_image_file("me.jpg")
-# my_face_encoding = face_recognition.face_encodings(picture_of_me)[0]
-
-# # my_face_encoding now contains a universal 'encoding' of my facial features that can be compared to any other picture of a face!
-
-# unknown_picture = face_recognition.load_image_file("unknown.jpg")
-# unknown_face_encoding = face_recognition.face_encodings(unknown_picture)[0]
-
-# # Now we can see the two face encodings are of the same person with `compare_faces`!
-
-# results = face_recognition.compare_faces(
-#     [my_face_encoding], unknown_face_encoding)
-
-# if results[0] == True:
-#     print("It's a picture of me!")
-# else:
-#     print("It's not a picture of me!")
+            results = face_recognition.compare_faces(
+                [known_encoding[0]], unknown_encoding[0])
+            print(results)
