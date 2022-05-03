@@ -54,7 +54,7 @@ class Image(models.Model):
 
 
 class Company(models.Model):
-
+    
     id = models.AutoField(auto_created=True, primary_key=True)
     companyId = models.TextField(unique=True)
     name = models.TextField()

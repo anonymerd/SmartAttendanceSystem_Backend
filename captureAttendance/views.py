@@ -8,7 +8,7 @@ import string
 import random
 import face_recognition
 from yaml import serialize
-from captureAttendance.models import Company, User, Log
+from captureAttendance.models import User, Log, Company
 from rest_framework import viewsets, permissions
 from .serializers import CompanySerializer, ImageSerializer, UserSerializer, LogSerializer
 from rest_framework.response import Response
@@ -188,7 +188,7 @@ class CompanyAPIView(APIView):
                     'image': serializer.data['image'],
                     'city': serializer.data['city'],
                     'country': serializer.data['country'],
-                    'isApproved': Company.objects.get(companyId=serializer.data['companyId']).isApproved,
+                    'isApproved': serializer.data['isApproved'],
                     'noOfEmployees': self.getTotalEmployees(serializer.data['companyId']),
                     'adminName': self.getAdminName(serializer.data['companyId'])
                 }
