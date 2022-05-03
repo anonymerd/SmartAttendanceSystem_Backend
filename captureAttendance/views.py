@@ -1,3 +1,12 @@
+import numpy as np
+import pandas as pd
+from deepface import DeepFace
+import jwt
+import re
+import os
+import string
+import random
+import face_recognition
 from yaml import serialize
 from captureAttendance.models import User, Log, Company
 from rest_framework import viewsets, permissions
@@ -8,20 +17,6 @@ from rest_framework.renderers import BaseRenderer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .emails import sendMail
 
-# from .faceRecognition import test
-
-
-import os
-import re
-import jwt
-import string
-import random
-
-
-from deepface import DeepFace
-import pandas as pd
-import numpy as np
-
 
 class ImageAPIView(APIView):
     def post(self, request):
@@ -30,46 +25,55 @@ class ImageAPIView(APIView):
             serializer.save()
             print(serializer.data)
             # print(os.path.basename(serializer.data['image']))
-            img = os.path.basename(serializer.data['image'])
+            unknown = os.path.basename(serializer.data['image'])
 
-            df = DeepFace.find(img_path='uploads/' + img, db_path="images/",
-                               distance_metric='euclidean_l2')
-            try:
-                os.remove("images/representations_vgg_face.pkl")
-            except:
-                print("No data to be removed")
+            for image in os.listdir('images/user'):
+                print(image)
 
-            if df is None or df.empty is True:
-                print("No match found for given Person")
-                return Response("No records found scan again", status=404)
-            else:
-                print("Match Found")
-                sorted_df = df.sort_values(
-                    by=['VGG-Face_euclidean_l2'], ascending=False)
-                numpyArrOfDF = sorted_df.to_numpy()
+                known_image = face_recognition.load_image_file(
+                    'images/user/' + image)
+                unknown_image = face_recognition.load_image_file(
+                    'uploads/' + unknown)
 
-                if not np.size(numpyArrOfDF):
-                    print("Error: No panda data frames found ")
-                    return Response("No records found scan again", status=404)
-                if numpyArrOfDF[0][1] < 0.4:
-                    print("Error: Euclidean Distance Less then threshold")
-                    return Response("No records found scan again", status=404)
-                else:
+                known_encoding = face_recognition.face_encodings(known_image)
+                unknown_encoding = face_recognition.face_encodings(
+                    unknown_image)
 
-                    fileName = re.split("\/", numpyArrOfDF[0][0], 2)
-                    userId = re.split("\.", fileName[2], 1)[0]
+                if(len(unknown_encoding) <= 0):
+                    return Response({'status': False, 'message': 'Face not detected'})
 
-                    print("Finding for User with id: " + userId)
+                if(len(known_encoding) > 0 and len(unknown_encoding) > 0):
 
-                    try:
-                        recognizedEmp = User.objects.get(pk=userId)
+                    results = face_recognition.compare_faces(
+                        [known_encoding[0]], unknown_encoding[0])
+                    print(results)
+
+                    if results[0] == True:
+                        print('Match Found')
+                        id = re.split('\.', image, 1)[0]
+
+                        print("Finding for User with id: " + id)
+
+                        # try:
+                        recognizedEmp = User.objects.get(userId=id)
                         empSerializer = UserSerializer(recognizedEmp)
                         print("Info Matched Emp: ")
                         print(empSerializer.data)
-                        return Response(empSerializer.data, status=200)
-                    except:
-                        print("Error: No match found")
-                        return Response("No records found scan again", status=404)
+
+                        userData = {
+                            'userId': empSerializer.data['userId'],
+                            'name': empSerializer.data['name'],
+                            'image': empSerializer.data['image'],
+                            'designation': empSerializer.data['designation'],
+                            'companyId': empSerializer.data['companyId']
+                        }
+                        return Response({'status': True, 'data': userData}, status=200)
+                        # except:
+                        #     print("Error: No match found")
+                        #     return Response("No records found scan again", status=404)
+
+                else:
+                    print('Maa chudi')
 
         print("Error: bad request")
         return Response(serializer.errors, status=400)
@@ -220,7 +224,7 @@ class CompanyAPIView(APIView):
         # )
 
         company = {
-            "companyId": ''.join(random.choices(string.ascii_uppercase + string.digits, k = 7)),
+            "companyId": ''.join(random.choices(string.ascii_uppercase + string.digits, k=7)),
             "name": request.data['name'],
             "email": request.data['email'],
             "image": request.data['image'],
@@ -379,13 +383,17 @@ class CompanyApprovalAPIView(APIView):
 
     def post(self, request):
         data = request.data
-
         if data['companyId'] or data['email'] or data['approve']:
             company = Company.objects.get(companyId=data['companyId'])
 
             if data['approve']:
                 company.isApproved = True
                 company.save()
+
+                length = 10
+                all = string.ascii_letters + string.digits + string.punctuation
+                password = "".join(random.sample(all, length))
+                print(password)
 
                 subject = 'Request Approved!!'
                 message = '''
@@ -400,7 +408,20 @@ class CompanyApprovalAPIView(APIView):
                         </h3>
                     </body>
                 </html>
-                '''.format(email=data['email'], password='Random Pwd')
+                '''.format(email=data['email'], password=password)
+
+                user = User.objects.get(
+                    companyId=data['companyId'], userType="AD")
+
+                user.password = password
+                user.save()
+
+                sendMail(data['email'], subject, message)
+
+                return Response({'status': True, 'data': {
+                    'result': 'Request Approved',
+                    'message': 'Email sent successfuly'}
+                })
             else:
                 company.delete()
                 subject = 'Request Denied!'

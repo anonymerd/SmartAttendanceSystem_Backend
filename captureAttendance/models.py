@@ -20,11 +20,31 @@ def path_and_rename(instance, filename, upload_to):
 
 
 def path_and_rename_company(instance, filename):
-    return path_and_rename(instance, filename, 'images/company')
+    upload_to = 'images/company'
+    ext = filename.split('.')[-1]
+    # get filename
+    print(instance)
+    if instance.companyId:
+        filename = '{}.{}'.format(instance.companyId, ext)
+    else:
+        # set filename as random string
+        filename = '{}.{}'.format(uuid4().hex, ext)
+    # return the whole path to the file
+    return os.path.join(upload_to, filename)
 
 
 def path_and_rename_user(instance, filename):
-    return path_and_rename(instance, filename, 'images/user')
+    upload_to = 'images/user'
+    ext = filename.split('.')[-1]
+    # get filename
+    print(instance)
+    if instance.userId:
+        filename = '{}.{}'.format(instance.userId, ext)
+    else:
+        # set filename as random string
+        filename = '{}.{}'.format(uuid4().hex, ext)
+    # return the whole path to the file
+    return os.path.join(upload_to, filename)
 
 
 class Image(models.Model):
@@ -43,7 +63,9 @@ class Company(models.Model):
     city = models.TextField()
     country = models.TextField()
     isApproved = models.BooleanField(default=False)
-    created = models.DateTimeField(auto_now=True) 
+    created = models.DateTimeField(auto_now=True)
+    objects = models.Manager()
+
 
 class User(models.Model):
     USER_TYPE_CHOICES = [
