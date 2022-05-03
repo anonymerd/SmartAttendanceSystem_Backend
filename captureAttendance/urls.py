@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import (
 # router.register('api/image', ImageViewSet, 'image')
 
 urlpatterns = [
-    # path('api/image/', ImageAPIView.as_view(), name='image_post'),
+    path('api/image/', ImageAPIView.as_view(), name='image_post'),
     # path('api/image/<str:id>', ImageAPIView.as_view(), name='image_get'),
     path('api/login', LoginApiView.as_view(),
          name='login_obtain_token_pair'),
@@ -23,7 +23,7 @@ urlpatterns = [
     path('api/company', CompanyAPIView.as_view(), name='get_all_companies'),
     path('api/company/<str:companyId>',
          CompanyAPIView.as_view(), name='get_all_companies'),
-    path('api/log', LogsAPIView.as_view(), name='log_company'),
+    path('api/log', LogsAPIView.as_view(), name='add_lods'),
     path('api/log/<str:companyId>', LogsAPIView.as_view(), name='log_company'),
     path('api/log/<str:companyId>/<str:userId>',
          LogsAPIView.as_view(), name='log_user'),

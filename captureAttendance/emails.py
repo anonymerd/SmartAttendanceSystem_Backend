@@ -11,7 +11,6 @@ SENDERS_PASSWORD = "Rohit@0412"
 
 
 def sendMail(receiversEmail, emailSubject, emailBody):
-
     message = MIMEMultipart("alternative")
     message["Subject"] = emailSubject
     message["From"] = SENDERS_EMAIL

@@ -32,6 +32,7 @@ class CompanySerializer(serializers.ModelSerializer):
             image=validated_data.pop('image'),
             city=validated_data.pop('city'),
             country=validated_data.pop('country'),
+            isApproved=validated_data.pop('is_approved'),
         )
         company.save()
         return company
