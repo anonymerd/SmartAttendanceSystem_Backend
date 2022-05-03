@@ -73,7 +73,7 @@ class ImageAPIView(APIView):
                         #     return Response("No records found scan again", status=404)
 
                 else:
-                    print('Maa chudi')
+                    print('Face Not Detected')
 
         print("Error: bad request")
         return Response(serializer.errors, status=400)
@@ -143,9 +143,9 @@ class UserAPIView(APIView):
             print(err)
             return Response({'status': False, 'message': err}, status=400)
 
-    def delete(self, request, id, format=None):
+    def delete(self, request, companyId, userId, format=None):
         try:
-            emp = User.objects.get(userId=id)
+            emp = User.objects.get(userId=userId)
             serializer = UserSerializer(emp)
             emp.delete()
             return Response({'status': True, 'data': 'User deleted'})
@@ -230,43 +230,32 @@ class CompanyAPIView(APIView):
             "image": request.data['image'],
             "city": request.data['city'],
             "country": request.data['country'],
+            'isApproved': False
         }
         compSerializer = CompanySerializer(data=company)
         if compSerializer.is_valid():
             compSerializer.save()
             print('Saved Company')
-            return Response(compSerializer.data, status=201)
-            # Creating Admin
-            # admin = User(
-            #     userId=request.data['adminId'],
-            #     name=request.data['adminName'],
-            #     email=request.data['adminEmail'],
-            #     password=None,
-            #     companyId=company,
-            #     image=request.data['adminImage'],
-            #     userType='NONE',
-            #     designation=request.data['adminDesignation']
-            # )
 
-            # admin = {
-            #     "userId": request.data['adminId'],
-            #     "name": request.data['adminName'],
-            #     "email": request.data['adminEmail'],
-            #     "password": None,
-            #     "companyId": company['companyId'],
-            #     "image": request.data['adminImage'],
-            #     "userType": 'NONE',
-            #     "designation": request.data['adminDesignation']
-            # }
-
-            # empSerializer = UserSerializer(data=admin)
-            # if empSerializer.is_valid():
-            #     empSerializer.save()
-            #     print('Saved Admin')
-            #     return Response(compSerializer.data, status=201)
-            # else:
-            #     print(empSerializer.errors)
-            #     return Response(empSerializer.errors)
+            data = request.data
+            admin = {
+                "userId": data['admin-id'],
+                "name": data['admin-name'],
+                "email": data['admin-email'],
+                "password": None,
+                "companyId": Company.objects.get(email=data['email']).companyId,
+                "image": data['admin-image'],
+                "userType": 'AD',
+                "designation": data['admin-designation']
+            }
+            serializer = UserSerializer(data=admin)
+            if serializer.is_valid():
+                serializer.save()
+                print("Saved Admin: ")
+                print(serializer.data)
+                return Response(compSerializer.data, status=201)
+            else:
+                return Response(serializer.errors)
 
         else:
             print('Company Not valid')
@@ -335,6 +324,7 @@ class LoginApiView(APIView):
         try:
             # Getting the user for the given email.
             data = request.data
+            # print(data)
             user = User.objects.get(email=data['email'])
 
             serializer = UserSerializer(user)
@@ -383,6 +373,7 @@ class CompanyApprovalAPIView(APIView):
 
     def post(self, request):
         data = request.data
+        print(request.data)
         if data['companyId'] or data['email'] or data['approve']:
             company = Company.objects.get(companyId=data['companyId'])
 
@@ -404,7 +395,8 @@ class CompanyApprovalAPIView(APIView):
                         </p>
                         <h3>
                             <strong>Email: </strong>{email}
-                            <strong>Email: </strong>{password}
+                            <br>
+                            <strong>Password: </strong>{password}
                         </h3>
                     </body>
                 </html>
