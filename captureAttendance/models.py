@@ -34,7 +34,7 @@ class Image(models.Model):
 
 
 class Company(models.Model):
-
+    
     id = models.AutoField(auto_created=True, primary_key=True)
     companyId = models.TextField(unique=True)
     name = models.TextField()
@@ -43,8 +43,7 @@ class Company(models.Model):
     city = models.TextField()
     country = models.TextField()
     isApproved = models.BooleanField(default=False)
-    created = models.DateTimeField(auto_now=True)
-
+    created = models.DateTimeField(auto_now=True) 
 
 class User(models.Model):
     USER_TYPE_CHOICES = [

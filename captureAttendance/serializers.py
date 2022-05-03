@@ -22,7 +22,7 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = ['companyId', 'name', 'email',
-                  'image', 'city', 'country']
+                  'image', 'city', 'country', 'isApproved']
 
     def create(self, validated_data):
         company = Company(
@@ -32,6 +32,7 @@ class CompanySerializer(serializers.ModelSerializer):
             image=validated_data.pop('image'),
             city=validated_data.pop('city'),
             country=validated_data.pop('country'),
+            isApproved=validated_data.pop('isApproved'),
         )
         company.save()
         return company
