@@ -20,63 +20,69 @@ from .emails import sendMail
 
 class ImageAPIView(APIView):
     def post(self, request):
-        serializer = ImageSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            print(serializer.data)
-            # print(os.path.basename(serializer.data['image']))
-            unknown = os.path.basename(serializer.data['image'])
 
-            for image in os.listdir('images/user'):
-                print(image)
+        try:
+            serializer = ImageSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                print(serializer.data)
+                # print(os.path.basename(serializer.data['image']))
+                unknown = os.path.basename(serializer.data['image'])
 
-                known_image = face_recognition.load_image_file(
-                    'images/user/' + image)
-                unknown_image = face_recognition.load_image_file(
-                    'uploads/' + unknown)
+                for image in os.listdir('images/user'):
+                    print(image)
 
-                known_encoding = face_recognition.face_encodings(known_image)
-                unknown_encoding = face_recognition.face_encodings(
-                    unknown_image)
+                    known_image = face_recognition.load_image_file(
+                        'images/user/' + image)
+                    unknown_image = face_recognition.load_image_file(
+                        'uploads/' + unknown)
 
-                if(len(unknown_encoding) <= 0):
-                    return Response({'status': False, 'message': 'Face not detected'})
+                    known_encoding = face_recognition.face_encodings(
+                        known_image)
+                    unknown_encoding = face_recognition.face_encodings(
+                        unknown_image)
 
-                if(len(known_encoding) > 0 and len(unknown_encoding) > 0):
+                    if(len(unknown_encoding) <= 0):
+                        return Response({'status': False, 'message': 'Face not detected'})
 
-                    results = face_recognition.compare_faces(
-                        [known_encoding[0]], unknown_encoding[0])
-                    print(results)
+                    if(len(known_encoding) > 0 and len(unknown_encoding) > 0):
 
-                    if results[0] == True:
-                        print('Match Found')
-                        id = re.split('\.', image, 1)[0]
+                        results = face_recognition.compare_faces(
+                            [known_encoding[0]], unknown_encoding[0])
+                        print(results)
 
-                        print("Finding for User with id: " + id)
+                        if results[0] == True:
+                            print('Match Found')
+                            id = re.split('\.', image, 1)[0]
 
-                        # try:
-                        recognizedEmp = User.objects.get(userId=id)
-                        empSerializer = UserSerializer(recognizedEmp)
-                        print("Info Matched Emp: ")
-                        print(empSerializer.data)
+                            print("Finding for User with id: " + id)
 
-                        userData = {
-                            'userId': empSerializer.data['userId'],
-                            'name': empSerializer.data['name'],
-                            'image': empSerializer.data['image'],
-                            'designation': empSerializer.data['designation'],
-                            'companyId': empSerializer.data['companyId']
-                        }
-                        return Response({'status': True, 'data': userData}, status=200)
-                        # except:
-                        #     print("Error: No match found")
-                        #     return Response("No records found scan again", status=404)
+                            # try:
+                            recognizedEmp = User.objects.get(userId=id)
+                            empSerializer = UserSerializer(recognizedEmp)
+                            print("Info Matched Emp: ")
+                            print(empSerializer.data)
 
-                else:
-                    print('Face Not Detected')
+                            userData = {
+                                'userId': empSerializer.data['userId'],
+                                'name': empSerializer.data['name'],
+                                'image': empSerializer.data['image'],
+                                'designation': empSerializer.data['designation'],
+                                'companyId': empSerializer.data['companyId']
+                            }
+                            return Response({'status': True, 'data': userData}, status=200)
+                            # except:
+                            #     print("Error: No match found")
+                            #     return Response("No records found scan again", status=404)
 
-        print("Error: bad request")
-        return Response(serializer.errors, status=400)
+                    else:
+                        print('Face Not Detected')
+
+            print("Error: bad request")
+            return Response(serializer.errors, status=400)
+        except Exception as err:
+            print(err)
+            return Response({'status': False, 'message': err})
 
 
 class UserAPIView(APIView):
@@ -108,9 +114,9 @@ class UserAPIView(APIView):
         except Company.DoesNotExist as err:
             print(err)
             return Response(err)
-        # except Exception as err:
-        #     print(err)
-        #     return Response({'status': False, 'message': err}, status=400)
+        except Exception as err:
+            print(err)
+            return Response({'status': False, 'message': err}, status=400)
 
     def get(self, request, companyId, userId=None, format=None):
 
@@ -209,60 +215,52 @@ class CompanyAPIView(APIView):
 
         except Company.DoesNotExist:
             return Response({'status': False, 'message': 'Company Does not exists'})
-        # except Exception as err:
-        #     return Response({'status': False, 'message': err})
+        except Exception as err:
+            return Response({'status': False, 'message': err})
 
     def post(self, request):
-        # try:
-        # companyData = request.data
-        # company = Company(
-        #     name=request.data['name'],
-        #     email=request.data['email'],
-        #     image=request.data['image'],
-        #     city=request.data['city'],
-        #     country=request.data['country'],
-        # )
 
-        company = {
-            "companyId": ''.join(random.choices(string.ascii_uppercase + string.digits, k=7)),
-            "name": request.data['name'],
-            "email": request.data['email'],
-            "image": request.data['image'],
-            "city": request.data['city'],
-            "country": request.data['country'],
-            'isApproved': False
-        }
-        compSerializer = CompanySerializer(data=company)
-        if compSerializer.is_valid():
-            compSerializer.save()
-            print('Saved Company')
-
-            data = request.data
-            admin = {
-                "userId": data['admin-id'],
-                "name": data['admin-name'],
-                "email": data['admin-email'],
-                "password": None,
-                "companyId": Company.objects.get(email=data['email']).companyId,
-                "image": data['admin-image'],
-                "userType": 'AD',
-                "designation": data['admin-designation']
+        try:
+            company = {
+                "companyId": ''.join(random.choices(string.ascii_uppercase + string.digits, k=7)),
+                "name": request.data['name'],
+                "email": request.data['email'],
+                "image": request.data['image'],
+                "city": request.data['city'],
+                "country": request.data['country'],
+                'isApproved': False
             }
-            serializer = UserSerializer(data=admin)
-            if serializer.is_valid():
-                serializer.save()
-                print("Saved Admin: ")
-                print(serializer.data)
-                return Response(compSerializer.data, status=201)
-            else:
-                return Response(serializer.errors)
+            compSerializer = CompanySerializer(data=company)
+            if compSerializer.is_valid():
+                compSerializer.save()
+                print('Saved Company')
 
-        else:
-            print('Company Not valid')
-            return Response(compSerializer.errors)
-        # except Exception as err:
-        #     print(err)
-        #     return Response({'status': False, 'message': err}, status=400)
+                data = request.data
+                admin = {
+                    "userId": data['admin-id'],
+                    "name": data['admin-name'],
+                    "email": data['admin-email'],
+                    "password": None,
+                    "companyId": Company.objects.get(email=data['email']).companyId,
+                    "image": data['admin-image'],
+                    "userType": 'AD',
+                    "designation": data['admin-designation']
+                }
+                serializer = UserSerializer(data=admin)
+                if serializer.is_valid():
+                    serializer.save()
+                    print("Saved Admin: ")
+                    print(serializer.data)
+                    return Response(compSerializer.data, status=201)
+                else:
+                    return Response(serializer.errors)
+
+            else:
+                print('Company Not valid')
+                return Response(compSerializer.errors)
+        except Exception as err:
+            print(err)
+            return Response({'status': False, 'message': err}, status=400)
 
 
 class LogsAPIView(APIView):
@@ -314,9 +312,9 @@ class LogsAPIView(APIView):
         except User.DoesNotExist as err:
             print(err)
             return Response(err)
-        # except Exception as err:
-        #     print(err)
-        #     return Response({'status': False, 'message': err}, status=400)
+        except Exception as err:
+            print(err)
+            return Response({'status': False, 'message': err}, status=400)
 
 
 class LoginApiView(APIView):
@@ -356,83 +354,94 @@ class LoginApiView(APIView):
 
         except User.DoesNotExist:
             return Response({'status': False, 'message': 'User Does Not Exists'})
+        except Exception as err:
+            print(err)
+            return Response({'status': False, 'message': err}, status=400)
 
 
 class RefreshTokenAPIView(APIView):
     def post(self, request):
-        token = request.data['token']
+        try:
+            token = request.data['token']
 
-        if token is not None:
-            refresh = RefreshToken(token)
-            token = refresh.access_token
+            if token is not None:
+                refresh = RefreshToken(token)
+                token = refresh.access_token
 
-            return Response({'status': True, 'data': {'access': str(token)}})
+                return Response({'status': True, 'data': {'access': str(token)}})
+        except Exception as err:
+            print(err)
+            return Response({'status': False, 'message': err}, status=400)
 
 
 class CompanyApprovalAPIView(APIView):
 
     def post(self, request):
-        data = request.data
-        print(request.data)
-        if data['companyId'] or data['email'] or data['approve']:
-            company = Company.objects.get(companyId=data['companyId'])
+        try:
+            data = request.data
+            print(request.data)
+            if data['companyId'] or data['email'] or data['approve']:
+                company = Company.objects.get(companyId=data['companyId'])
 
-            if data['approve']:
-                company.isApproved = True
-                company.save()
+                if data['approve']:
+                    company.isApproved = True
+                    company.save()
 
-                length = 10
-                all = string.ascii_letters + string.digits + string.punctuation
-                password = "".join(random.sample(all, length))
-                print(password)
+                    length = 10
+                    all = string.ascii_letters + string.digits + string.punctuation
+                    password = "".join(random.sample(all, length))
+                    print(password)
 
-                subject = 'Request Approved!!'
-                message = '''
-                <html>
-                    <body>
-                        <p>
-                            Congratulations! Your Request is aprroved. Please find the login credentials below.
-                        </p>
-                        <h3>
-                            <strong>Email: </strong>{email}
-                            <br>
-                            <strong>Password: </strong>{password}
-                        </h3>
-                    </body>
-                </html>
-                '''.format(email=data['email'], password=password)
+                    subject = 'Request Approved!!'
+                    message = '''
+                    <html>
+                        <body>
+                            <p>
+                                Congratulations! Your Request is aprroved. Please find the login credentials below.
+                            </p>
+                            <h3>
+                                <strong>Email: </strong>{email}
+                                <br>
+                                <strong>Password: </strong>{password}
+                            </h3>
+                        </body>
+                    </html>
+                    '''.format(email=data['email'], password=password)
 
-                user = User.objects.get(
-                    companyId=data['companyId'], userType="AD")
+                    user = User.objects.get(
+                        companyId=data['companyId'], userType="AD")
 
-                user.password = password
-                user.save()
+                    user.password = password
+                    user.save()
 
-                sendMail(data['email'], subject, message)
+                    sendMail(data['email'], subject, message)
 
-                return Response({'status': True, 'data': {
-                    'result': 'Request Approved',
-                    'message': 'Email sent successfuly'}
-                })
+                    return Response({'status': True, 'data': {
+                        'result': 'Request Approved',
+                        'message': 'Email sent successfuly'}
+                    })
+                else:
+                    company.delete()
+                    subject = 'Request Denied!'
+                    message = '''
+                    <html>
+                        <body>
+                            <p>
+                                Your request to register your company was denied.
+                            </p>
+                        </body>
+                    </html>
+                    '''
+
+                    sendMail(data['email'], subject, message)
+
+                    return Response({'status': True, 'data': {
+                        'result': 'Request Disapproved',
+                        'message': 'Email sent successfuly'}
+                    })
+
             else:
-                company.delete()
-                subject = 'Request Denied!'
-                message = '''
-                <html>
-                    <body>
-                        <p>
-                            Your request to register your company was denied.
-                        </p>
-                    </body>
-                </html>
-                '''
-
-                sendMail(data['email'], subject, message)
-
-                return Response({'status': True, 'data': {
-                    'result': 'Request Disapproved',
-                    'message': 'Email sent successfuly'}
-                })
-
-        else:
-            return Response({'status': False, 'message': 'Improper data received'})
+                return Response({'status': False, 'message': 'Improper data received'})
+        except Exception as err:
+            print(err)
+            return Response({'status': False, 'message': err}, status=400)

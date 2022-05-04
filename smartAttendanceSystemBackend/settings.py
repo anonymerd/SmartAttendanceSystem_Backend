@@ -145,3 +145,5 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'SIGNING_KEY': 'anonymerd'
 }
+
+APPEND_SLASH = False

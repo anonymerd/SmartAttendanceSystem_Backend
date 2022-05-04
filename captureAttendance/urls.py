@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import (
 # router.register('api/image', ImageViewSet, 'image')
 
 urlpatterns = [
-    path('api/image/', ImageAPIView.as_view(), name='image_post'),
+    path('api/image', ImageAPIView.as_view(), name='image_post'),
     # path('api/image/<str:id>', ImageAPIView.as_view(), name='image_get'),
     path('api/login', LoginApiView.as_view(),
          name='login_obtain_token_pair'),
